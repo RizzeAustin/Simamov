@@ -476,7 +476,7 @@
                     <div style="height: 510px;position:relative;">
                         <div style="max-height:100%;overflow-y:auto;overflow-x:hidden;">
                             <div class="row">
-                                <div class="col-md-6" style="border-right: 1px solid #ccc; margin-bottom: 5px">
+                                <div id="formrwyt" class="col-md-6" style="border-right: 1px solid #ccc; margin-bottom: 5px">
                                     <div class="row" style="margin-bottom: 5px">
                                         <div class="col-md-12">
                                             <strong>Berdasarkan item :</strong>
@@ -994,6 +994,7 @@
         //modal
         var entry_modal = $('#entry_modal');
         var riwayat_modal = $('#riwayat_modal');
+        var formrwyt = $('#formrwyt');
         var refisi_modal = $('#refisi_modal');
         var unit_modal = $('#unit_modal');
 
@@ -1062,7 +1063,11 @@
         if (ta != new Date().getFullYear()) {
             rlampau = [ 0, 1, 14 ]
         } else {
-            rlampau = [ 0 ]
+            if ({{admin}} || {{bendahara}}) {
+                rlampau = [ 0 ]
+            } else {
+                rlampau = [ 0, 1, 14 ]
+            }    
         }
         tabel_riwayat.DataTable({
             columnDefs: [
@@ -2395,6 +2400,11 @@
             });
 
             $('.detail_blnj_riwayat').html(all_row_target_td[4])
+            if ({{admin}} || {{bendahara}}) {
+                formrwyt.show();
+            } else {
+                formrwyt.hide();
+            }
             riwayat_modal.modal('show');
         });
 
@@ -2719,7 +2729,8 @@
         var state_active_editor_entry = false;
         var editor_entry;
         var active_entry;
-        tabel_riwayat.on('dblclick', 'tr td', function () {
+        if ({{admin}} || {{bendahara}}) {
+            tabel_riwayat.on('dblclick', 'tr td', function () {
             active_entry = $(this);
             if({{#unless admin}}active_entry.closest('tr').find('td:eq(8)').text()!= user_aktiv || {{/unless}}state_active_editor_entry || active_entry.is(':nth-child(1)') || active_entry.is(':nth-child(2)') || active_entry.is(':nth-child(13)') || active_entry.is(':nth-child(14)')){
                 {{#unless admin}}
@@ -2788,7 +2799,8 @@
                 .height(active_entry.height())
                 .focus();
             editor_entry.select();
-        });
+            });
+        }
 
         var date_field_timestamp_temp; //temp nilai timestamp tgl utk edit riwayat
         tabel_riwayat.on('dp.change', '.date', function(e){
@@ -4598,7 +4610,7 @@
                         selected_data[0] = $('#timpa_d_blnj_list').val();
                         selected_data[1] = '<span class="badge badge-success">update</span>'
                         selected_data[7] = '<button type="button" class="kembalikan-buatbaru-detail" title="kembalikan detail dan buat baru"><i class="icon-action-undo"></i></button>';
-                        timpa_table.DataTable().row(function ( idx, data, node ) {
+                        /*timpa_table.DataTable().row(function ( idx, data, node ) {
                                     return data[0] == $('#timpa_d_blnj_list').val() ?
                                         true : false;
                                 }).remove().draw(false);
@@ -4607,7 +4619,7 @@
                         $('#pok_table_change').DataTable().row(function ( idx, data, node ) {
                                     return data[0] == $('#timpa_d_blnj_list').val() ?
                                         true : false;
-                                }).remove().draw(false);
+                                }).remove().draw(false);*/
 
                         $('#pok_table_change').DataTable().row(function ( idx, data, node ) {
                                     return data[0] == timpa_source_id ?
@@ -4624,10 +4636,10 @@
                             '<button type="button" class="kembalikan-buatbaru-detail" title="kembalikan detail dan buat baru"><i class="icon-action-undo"></i></button> <button type="button" class="lihat-akun" title="lihat semua detail dalam akun detail ini"><i class="icon-layers"></i></button>'
                         ]);
                     } else {
-                        timpa_table.DataTable().row(function ( idx, data, node ) {
+                        /*timpa_table.DataTable().row(function ( idx, data, node ) {
                                     return data[0] == $('#timpa_d_blnj_list').val() ?
                                         true : false;
-                                }).remove().draw(false);
+                                }).remove().draw(false);*/
                         timpa_table.DataTable().row(timpa_row).data([
                             $('#timpa_d_blnj_list').val(),
                             '<span class="badge badge-success">update</span>',
