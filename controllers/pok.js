@@ -898,7 +898,7 @@ pok.socket = function(io, connections, client) {
                                                                                                                                                                                                                                                         }
                                                                                                                                                                                                                                                         var detail_row;
                                                                                                                                                                                                                                                         let count = 0;
-                                                                                                                                                                                                                                                        if (detail.old.length = 1) {
+                                                                                                                                                                                                                                                        if (detail.old.length == 1) {
                                                                                                                                                                                                                                                             for (var c in detail.old[0]) {
                                                                                                                                                                                                                                                                 count = count + 1;
                                                                                                                                                                                                                                                             }
@@ -969,7 +969,7 @@ pok.socket = function(io, connections, client) {
                                                                                                                                                                                                                                                             }
                                                                                                                                                                                                                                                         } else {
                                                                                                                                                                                                                                                             if (detail.unit.includes(userunit) || editor || admin == 1 || jabatan <= 2 || detail.nmitem.charAt(0) == '>') {
-                                                                                                                                                                                                                                                                if (detail.old.length === 0 || (detail.old.length === 1 && count === 3 && detail.old[0].noitem)) {
+                                                                                                                                                                                                                                                                if ((count == 3 && detail.old[0].noitem) || detail.old.length == 0) {
                                                                                                                                                                                                                                                                     if (thang == new Date().getFullYear()) {
                                                                                                                                                                                                                                                                         if (detail.nmitem.charAt(0) == '>') {
                                                                                                                                                                                                                                                                             detail_row = [
@@ -3183,20 +3183,22 @@ pok.socket = function(io, connections, client) {
                                 satkeg: detail.satkeg,
                                 hargasat: detail.hargasat,
                                 jumlah: detail.jumlah,
-                                noitem: details.length + 1
+                                noitem: details.length + 1,
+                                old: []
                             });
                             //kembalikan nilai sblmnya
-                            for (var i = 0; i < detail_belanja_var.length; i++) {
-                                if (detail.old[detail.old.length - 1][detail_belanja_var[i]]) {
-                                    detail[detail_belanja_var[i]] = detail.old[detail.old.length - 1][detail_belanja_var[i]];
-                                }
-                            }
+                            // for (var i = 0; i < detail_belanja_var.length; i++) {
+                            //     if (detail.old[detail.old.length - 1][detail_belanja_var[i]]) {
+                            //         detail[detail_belanja_var[i]] = detail.old[detail.old.length - 1][detail_belanja_var[i]];
+                            //     }
+                            // }
                             detail.timestamp = timestamp;
+                            detail = new_detail;
                             detail.save(function(err) {
-                                new_detail.save(function(err) {
-                                    console.log(new_detail);
-                                    cb({ 'prev_detail': detail, 'new_detail': new_detail });
-                                })
+                                // new_detail.save(function(err) {
+                                //     console.log(new_detail);
+                                cb({ 'prev_detail': detail, 'new_detail': new_detail });
+                                // })
                             })
                         })
                     }
@@ -3243,7 +3245,10 @@ pok.socket = function(io, connections, client) {
                     } else {
                         old.jumlah = target.jumlah;
                     }
-                    old.jumlah = target.jumlah;
+                    if (target.jumlah == 0) {
+                        target.old.pop();
+                    }
+                    source.old = target.old;
                     source.old.push(old);
                     // for (var i = 0; i < detail_belanja_var.length; i++) {
                     //     if (source[detail_belanja_var[i]]) {
