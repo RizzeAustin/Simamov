@@ -364,7 +364,7 @@ pok.socket = function(io, connections, client) {
                             'unit': userunit,
                             active: true
                         }).sort('noitem').exec(function(err, detail) {
-                            if (detail || editor || admin == 1 || jabatan <= 2) {
+                            if (detail || editor || admin == 1 || jabatan <= 2 || role == 17) {
                                 filter++;
                             }
                             if (filter != 0) {
@@ -431,7 +431,7 @@ pok.socket = function(io, connections, client) {
                                                             'unit': userunit,
                                                             active: true
                                                         }).sort('noitem').exec(function(err, detail) {
-                                                            if (detail || editor || admin == 1 || jabatan <= 2) {
+                                                            if (detail || editor || admin == 1 || jabatan <= 2 || role == 17) {
                                                                 filter++;
                                                             }
                                                             if (filter != 0) {
@@ -498,7 +498,7 @@ pok.socket = function(io, connections, client) {
                                                                                             'unit': userunit,
                                                                                             active: true
                                                                                         }).sort('noitem').exec(function(err, detail) {
-                                                                                            if (detail || editor || admin == 1 || jabatan <= 2) {
+                                                                                            if (detail || editor || admin == 1 || jabatan <= 2 || role == 17) {
                                                                                                 filter++;
                                                                                             }
                                                                                             if (filter != 0) {
@@ -567,7 +567,7 @@ pok.socket = function(io, connections, client) {
                                                                                                                             'unit': userunit,
                                                                                                                             active: true
                                                                                                                         }).sort('noitem').exec(function(err, detail) {
-                                                                                                                            if (detail || editor || admin == 1 || jabatan <= 2) {
+                                                                                                                            if (detail || editor || admin == 1 || jabatan <= 2 || role == 17) {
                                                                                                                                 filter++;
                                                                                                                             }
                                                                                                                             if (filter != 0) {
@@ -655,7 +655,7 @@ pok.socket = function(io, connections, client) {
                                                                                                                                                             'unit': userunit,
                                                                                                                                                             active: true
                                                                                                                                                         }).sort('noitem').exec(function(err, detail) {
-                                                                                                                                                            if (detail || editor || admin == 1 || jabatan <= 2) {
+                                                                                                                                                            if (detail || editor || admin == 1 || jabatan <= 2 || role == 17) {
                                                                                                                                                                 filter++;
                                                                                                                                                             }
                                                                                                                                                             if (filter != 0) {
@@ -734,7 +734,7 @@ pok.socket = function(io, connections, client) {
                                                                                                                                                                                             'unit': userunit,
                                                                                                                                                                                             active: true
                                                                                                                                                                                         }).sort('noitem').exec(function(err, detail) {
-                                                                                                                                                                                            if (detail || editor || admin == 1 || jabatan <= 2) {
+                                                                                                                                                                                            if (detail || editor || admin == 1 || jabatan <= 2 || role == 17) {
                                                                                                                                                                                                 filter++;
                                                                                                                                                                                             }
                                                                                                                                                                                             if (filter != 0) {
@@ -824,7 +824,7 @@ pok.socket = function(io, connections, client) {
                                                                                                                                                                                                                             'unit': userunit,
                                                                                                                                                                                                                             active: true
                                                                                                                                                                                                                         }).sort('noitem').exec(function(err, detail) {
-                                                                                                                                                                                                                            if (detail || editor || admin == 1 || jabatan <= 2) {
+                                                                                                                                                                                                                            if (detail || editor || admin == 1 || jabatan <= 2 || role == 17) {
                                                                                                                                                                                                                                 filter++;
                                                                                                                                                                                                                             }
                                                                                                                                                                                                                             if (filter != 0) {
@@ -893,7 +893,7 @@ pok.socket = function(io, connections, client) {
                                                                                                                                                                                                                                                 //push tiap out
                                                                                                                                                                                                                                                 detail_tasks.push(
                                                                                                                                                                                                                                                     function(detail_cb) {
-                                                                                                                                                                                                                                                        if ((detail.unit.includes(userunit) || editor || admin == 1 || jabatan <= 2) && detail.nmitem.charAt(0) != '>') {
+                                                                                                                                                                                                                                                        if ((detail.unit.includes(userunit) || editor || admin == 1 || jabatan <= 2 || role == 17) && detail.nmitem.charAt(0) != '>') {
                                                                                                                                                                                                                                                             akun.jumlah += detail.jumlah;
                                                                                                                                                                                                                                                         }
                                                                                                                                                                                                                                                         var detail_row;
@@ -968,7 +968,7 @@ pok.socket = function(io, connections, client) {
                                                                                                                                                                                                                                                                 }
                                                                                                                                                                                                                                                             }
                                                                                                                                                                                                                                                         } else {
-                                                                                                                                                                                                                                                            if (detail.unit.includes(userunit) || editor || admin == 1 || jabatan <= 2 || detail.nmitem.charAt(0) == '>') {
+                                                                                                                                                                                                                                                            if (detail.unit.includes(userunit) || editor || admin == 1 || jabatan <= 2 || role == 17 || detail.nmitem.charAt(0) == '>') {
                                                                                                                                                                                                                                                                 if ((count == 3 && detail.old[0].noitem) || detail.old.length == 0) {
                                                                                                                                                                                                                                                                     if (thang == new Date().getFullYear()) {
                                                                                                                                                                                                                                                                         if (detail.nmitem.charAt(0) == '>') {
@@ -3268,7 +3268,7 @@ pok.socket = function(io, connections, client) {
     client.on('pok_summary', function(month, cb) {
         var y = thang || new Date().getFullYear();
         var lower_ts = Math.round(new Date(y, month, 1).getTime() / 1000);
-        if (editor || admin == 1 || jabatan <= 2) {
+        if (editor || admin == 1 || jabatan <= 2 || role == 17) {
             DetailBelanja.aggregate([
                 { $match: { active: true, thang: +thang } },
                 { $project: { realisasi: { tgl_timestamp: 1, jumlah: 1 } } },
@@ -3487,11 +3487,14 @@ pok.get('/', function(req, res) {
     Setting.findOne({ 'thang': req.session.tahun_anggaran || new Date().getFullYear(), type: 'pok' }, function(err, pok_setting) {
         var role = req.session.userRole;
         var bendahara = false;
+        var binagram = false;
         if (role == 15) {
             bendahara = true;
         }
-        console.log(bendahara)
-        if (pok_setting) res.render('pok/pok', { layout: false, pok_name: pok_setting.toObject().name, 'bendahara': bendahara, unit: req.session.userUnit, admin: req.session.jenis, username: req.session.username, tahun_anggaran: req.session.tahun_anggaran, 'tang': tang });
+        if (role == 17 || req.session.jenis) {
+            binagram = true;
+        }
+        if (pok_setting) res.render('pok/pok', { layout: false, pok_name: pok_setting.toObject().name, 'bendahara': bendahara, 'binagram': binagram, unit: req.session.userUnit, admin: req.session.jenis, username: req.session.username, tahun_anggaran: req.session.tahun_anggaran, 'tang': tang });
         else res.render('pok/pok', {
             layout: false,
             unit: req.session.userUnit,
