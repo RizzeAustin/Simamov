@@ -60,7 +60,6 @@ loket.socket = function(io, connections, client) {
     client.on('detailid', function(dt) {
         console.log(dt);
         DetailBelanja.findOne({ kdprogram: dt.kdprogram, kdgiat: dt.kdgiat, kdoutput: dt.kdoutput, kdsoutput: dt.kdsoutput, kdkmpnen: dt.kdkmpnen, kdskmpnen: dt.kdskmpnen, kdakun: dt.kdakun, nmitem: dt.nmitem }, function(err, detail) {
-            console.log(detail);
             var dts = {};
             dts.id = detail._id;
             dts.nmitem = detail.nmitem;
@@ -398,7 +397,7 @@ loket.socket = function(io, connections, client) {
 
 loket.get('/dashboard', async function(req, res) {
     // -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
 
     // -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2334,7 +2333,7 @@ loket.get('/downloadPermintaanDana/:tabel/:format', function(req, res) { //belum
             type: 'pattern',
             patternType: 'solid',
             fgColor: '#20a8d8',
-        } 
+        }
     })
     var text_center = wb.createStyle({
         alignment: {
@@ -2408,14 +2407,14 @@ loket.get('/downloadPermintaanDana/:tabel/:format', function(req, res) { //belum
             type: 'pattern',
             patternType: 'solid',
             fgColor: '#dce2c8',
-        } 
+        }
     })
 
-    
+
     var row_pos = 6
-    
-    if(jenisTabel == 'proses'){
-        Loket.find({status: { $in: ['Belum selesai', 'Dikembalikan ke unit'] }}, {nomorTransaksi:1, tanggal:{pengajuan:1, pelaksanaan:1}, unit:1, operator:1, pok:{kdakun:1, detil:1}, detail:1, status:1, nilai:{bruto:1}}).lean().sort('tanggal.pengajuan').exec((err, data)=>{
+
+    if (jenisTabel == 'proses') {
+        Loket.find({ status: { $in: ['Belum selesai', 'Dikembalikan ke unit'] } }, { nomorTransaksi: 1, tanggal: { pengajuan: 1, pelaksanaan: 1 }, unit: 1, operator: 1, pok: { kdakun: 1, detil: 1 }, detail: 1, status: 1, nilai: { bruto: 1 } }).lean().sort('tanggal.pengajuan').exec((err, data) => {
             //width
             ws.column(1).setWidth(13)
             ws.column(2).setWidth(12)
@@ -2427,7 +2426,7 @@ loket.get('/downloadPermintaanDana/:tabel/:format', function(req, res) { //belum
             ws.column(8).setWidth(13)
             ws.column(9).setWidth(10)
             ws.column(10).setWidth(30)
-        
+
             //title
             ws.cell(2, 1, 2, 10, true).string('Daftar Permintaan Dana').style({ font: { bold: true, size: 14 }, alignment: { horizontal: 'center' } });
             //header
@@ -2442,51 +2441,51 @@ loket.get('/downloadPermintaanDana/:tabel/:format', function(req, res) { //belum
             ws.cell(4, 8, 5, 8, true).string('Status').style(header)
             ws.cell(4, 9, 5, 9, true).string('Kode Akun').style(header)
             ws.cell(4, 10, 5, 10, true).string('Detil POK').style(header)
-            //body
+                //body
             for (let i = 0; i < data.length; i++) {
                 let ddd = `="${data[i].pok.detil.u1}"`
-                if (data[i].pok.detil.u2){
+                if (data[i].pok.detil.u2) {
                     ddd = ddd + `&CHAR(10)&"${data[i].pok.detil.u2}"`
                 }
-                if (data[i].pok.detil.u3){
+                if (data[i].pok.detil.u3) {
                     ddd = ddd + `&CHAR(10)&"${data[i].pok.detil.u3}"`
                 }
-                if (data[i].pok.detil.u4){
+                if (data[i].pok.detil.u4) {
                     ddd = ddd + `&CHAR(10)&"${data[i].pok.detil.u4}"`
                 }
-                if (data[i].pok.detil.u5){
+                if (data[i].pok.detil.u5) {
                     ddd = ddd + `&CHAR(10)&"${data[i].pok.detil.u5}"`
                 }
-    
-                if (data[i].status == 'Dikembalikan ke unit'){
-                    ws.cell(row_pos+i, 1).string(data[i].unit.nama).style(text_center).style(row_tolak)
-                    ws.cell(row_pos+i, 2).string(data[i].nomorTransaksi).style(text_center).style(row_tolak)
-                    ws.cell(row_pos+i, 3).string(formatTanggal(data[i].tanggal.pengajuan)).style(text_center).style(row_tolak)
-                    ws.cell(row_pos+i, 4).string(formatTanggal(data[i].tanggal.pelaksanaan)).style(text_center).style(row_tolak)
-                    ws.cell(row_pos+i, 5).number(data[i].nilai.bruto).style(number).style(row_tolak)
-                    ws.cell(row_pos+i, 6).string(data[i].operator).style(text_center).style(row_tolak)
-                    ws.cell(row_pos+i, 7).string(data[i].detail).style(text_left).style(row_tolak)
-                    ws.cell(row_pos+i, 8).string(data[i].status).style(text_center).style(row_tolak)
-                    ws.cell(row_pos+i, 9).string(data[i].pok.kdakun).style(text_center).style(row_tolak)
-                    ws.cell(row_pos+i, 10).formula(ddd).style(text_left).style(row_tolak)
+
+                if (data[i].status == 'Dikembalikan ke unit') {
+                    ws.cell(row_pos + i, 1).string(data[i].unit.nama).style(text_center).style(row_tolak)
+                    ws.cell(row_pos + i, 2).string(data[i].nomorTransaksi).style(text_center).style(row_tolak)
+                    ws.cell(row_pos + i, 3).string(formatTanggal(data[i].tanggal.pengajuan)).style(text_center).style(row_tolak)
+                    ws.cell(row_pos + i, 4).string(formatTanggal(data[i].tanggal.pelaksanaan)).style(text_center).style(row_tolak)
+                    ws.cell(row_pos + i, 5).number(data[i].nilai.bruto).style(number).style(row_tolak)
+                    ws.cell(row_pos + i, 6).string(data[i].operator).style(text_center).style(row_tolak)
+                    ws.cell(row_pos + i, 7).string(data[i].detail).style(text_left).style(row_tolak)
+                    ws.cell(row_pos + i, 8).string(data[i].status).style(text_center).style(row_tolak)
+                    ws.cell(row_pos + i, 9).string(data[i].pok.kdakun).style(text_center).style(row_tolak)
+                    ws.cell(row_pos + i, 10).formula(ddd).style(text_left).style(row_tolak)
                 } else {
-                    ws.cell(row_pos+i, 1).string(data[i].unit.nama).style(text_center)
-                    ws.cell(row_pos+i, 2).string(data[i].nomorTransaksi).style(text_center)
-                    ws.cell(row_pos+i, 3).string(formatTanggal(data[i].tanggal.pengajuan)).style(text_center)
-                    ws.cell(row_pos+i, 4).string(formatTanggal(data[i].tanggal.pelaksanaan)).style(text_center)
-                    ws.cell(row_pos+i, 5).number(data[i].nilai.bruto).style(number)
-                    ws.cell(row_pos+i, 6).string(data[i].operator).style(text_center)
-                    ws.cell(row_pos+i, 7).string(data[i].detail).style(text_left)
-                    ws.cell(row_pos+i, 8).string(data[i].status).style(text_center)
-                    ws.cell(row_pos+i, 9).string(data[i].pok.kdakun).style(text_center)
-                    ws.cell(row_pos+i, 10).formula(ddd).style(text_left)
+                    ws.cell(row_pos + i, 1).string(data[i].unit.nama).style(text_center)
+                    ws.cell(row_pos + i, 2).string(data[i].nomorTransaksi).style(text_center)
+                    ws.cell(row_pos + i, 3).string(formatTanggal(data[i].tanggal.pengajuan)).style(text_center)
+                    ws.cell(row_pos + i, 4).string(formatTanggal(data[i].tanggal.pelaksanaan)).style(text_center)
+                    ws.cell(row_pos + i, 5).number(data[i].nilai.bruto).style(number)
+                    ws.cell(row_pos + i, 6).string(data[i].operator).style(text_center)
+                    ws.cell(row_pos + i, 7).string(data[i].detail).style(text_left)
+                    ws.cell(row_pos + i, 8).string(data[i].status).style(text_center)
+                    ws.cell(row_pos + i, 9).string(data[i].pok.kdakun).style(text_center)
+                    ws.cell(row_pos + i, 10).formula(ddd).style(text_left)
                 }
             }
-    
+
             UnduhPermintaan(format, wb, res)
         })
-    } else if (jenisTabel == 'selesai'){
-        Loket.find({status: 'Selesai'}, {nomorTransaksi:1, tanggal:{transfer:1, selesai:1}, unit:1, pok:{kdakun:1, detil:1}, detail:1, metodeTransfer:1, nilai:{bruto:1, pajak:1}}).lean().sort('tanggal.selesai').exec((err, data)=>{
+    } else if (jenisTabel == 'selesai') {
+        Loket.find({ status: 'Selesai' }, { nomorTransaksi: 1, tanggal: { transfer: 1, selesai: 1 }, unit: 1, pok: { kdakun: 1, detil: 1 }, detail: 1, metodeTransfer: 1, nilai: { bruto: 1, pajak: 1 } }).lean().sort('tanggal.selesai').exec((err, data) => {
             //width
             ws.column(1).setWidth(13)
             ws.column(2).setWidth(12)
@@ -2498,7 +2497,7 @@ loket.get('/downloadPermintaanDana/:tabel/:format', function(req, res) { //belum
             ws.column(8).setWidth(30)
             ws.column(9).setWidth(10)
             ws.column(10).setWidth(30)
-        
+
             //title
             ws.cell(2, 1, 2, 10, true).string('Daftar Permintaan Dana Selesai').style({ font: { bold: true, size: 14 }, alignment: { horizontal: 'center' } });
             //header
@@ -2514,34 +2513,34 @@ loket.get('/downloadPermintaanDana/:tabel/:format', function(req, res) { //belum
             ws.cell(4, 8, 5, 8, true).string('Deskripsi').style(header)
             ws.cell(4, 9, 5, 9, true).string('Kode Akun').style(header)
             ws.cell(4, 10, 5, 10, true).string('Detil POK').style(header)
-            //body
+                //body
             for (let i = 0; i < data.length; i++) {
                 let ddd = `="${data[i].pok.detil.u1}"`
-                if (data[i].pok.detil.u2){
+                if (data[i].pok.detil.u2) {
                     ddd = ddd + `&CHAR(10)&"${data[i].pok.detil.u2}"`
                 }
-                if (data[i].pok.detil.u3){
+                if (data[i].pok.detil.u3) {
                     ddd = ddd + `&CHAR(10)&"${data[i].pok.detil.u3}"`
                 }
-                if (data[i].pok.detil.u4){
+                if (data[i].pok.detil.u4) {
                     ddd = ddd + `&CHAR(10)&"${data[i].pok.detil.u4}"`
                 }
-                if (data[i].pok.detil.u5){
+                if (data[i].pok.detil.u5) {
                     ddd = ddd + `&CHAR(10)&"${data[i].pok.detil.u5}"`
                 }
-    
-                ws.cell(row_pos+i, 1).string(data[i].unit.nama).style(text_center)
-                ws.cell(row_pos+i, 2).string(data[i].nomorTransaksi).style(text_center)
-                ws.cell(row_pos+i, 3).string(formatTanggal(data[i].tanggal.selesai)).style(text_center)
-                ws.cell(row_pos+i, 4).string(formatTanggal(data[i].tanggal.transfer)).style(text_center)
-                ws.cell(row_pos+i, 5).number(data[i].nilai.bruto).style(number)
-                ws.cell(row_pos+i, 6).number(data[i].nilai.pajak).style(number)
-                ws.cell(row_pos+i, 7).string(data[i].metodeTransfer).style(text_center)
-                ws.cell(row_pos+i, 8).string(data[i].detail).style(text_left)
-                ws.cell(row_pos+i, 9).string(data[i].pok.kdakun).style(text_center)
-                ws.cell(row_pos+i, 10).formula(ddd).style(text_left)
+
+                ws.cell(row_pos + i, 1).string(data[i].unit.nama).style(text_center)
+                ws.cell(row_pos + i, 2).string(data[i].nomorTransaksi).style(text_center)
+                ws.cell(row_pos + i, 3).string(formatTanggal(data[i].tanggal.selesai)).style(text_center)
+                ws.cell(row_pos + i, 4).string(formatTanggal(data[i].tanggal.transfer)).style(text_center)
+                ws.cell(row_pos + i, 5).number(data[i].nilai.bruto).style(number)
+                ws.cell(row_pos + i, 6).number(data[i].nilai.pajak).style(number)
+                ws.cell(row_pos + i, 7).string(data[i].metodeTransfer).style(text_center)
+                ws.cell(row_pos + i, 8).string(data[i].detail).style(text_left)
+                ws.cell(row_pos + i, 9).string(data[i].pok.kdakun).style(text_center)
+                ws.cell(row_pos + i, 10).formula(ddd).style(text_left)
             }
-    
+
             UnduhPermintaan(format, wb, res)
         })
     }
@@ -2599,12 +2598,12 @@ function formatUang(x) {
     } else return ''
 }
 
-function UnduhPermintaan(format, wb, res){
+function UnduhPermintaan(format, wb, res) {
     if (format == 'xlsx')
         wb.write('Daftar Permintaan Dana.xlsx', res)
     else {
         msopdf(null, function(error, office) {
-            if (error) { 
+            if (error) {
                 console.log("Init failed", error);
                 return
             }
@@ -2621,16 +2620,16 @@ function UnduhPermintaan(format, wb, res){
                         console.log(err)
                     }
                 })
-                office.close(null, function(err) { 
-                    if (err) { 
+                office.close(null, function(err) {
+                    if (err) {
                         console.log(err);
-                    } else { 
-                        res.download(output, (err)=>{
+                    } else {
+                        res.download(output, (err) => {
                             if (err) {
                                 console.log(err)
                             }
-                            fs.unlink(input, (err)=>{})
-                            fs.unlink(output, (err)=>{})
+                            fs.unlink(input, (err) => {})
+                            fs.unlink(output, (err) => {})
                         })
                     }
                 });
