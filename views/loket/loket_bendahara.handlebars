@@ -594,7 +594,7 @@
         
         //console.log(dt);
 
-        $('td.format-uang').autoNumeric('init', {digitGroupSeparator: ',', decimalCharacter: '.', decimalPlacesOverride: '0'});
+        $('td.format-uang, #entry_jumlah_field').autoNumeric('init', {digitGroupSeparator: ',', decimalCharacter: '.', decimalPlacesOverride: '0'});
         
         $("#loketProgram").focus()
 
@@ -1004,64 +1004,47 @@
         $("#loketForm").on('click', '.loketInputRealisasi1', function () {
             dtpick.nmitem = $('#loketDetailPok1').val();
             socket.emit('detailid', dtpick);
-            socket.on('id_response', function(dt,cb) {
-                detail_id_target = dt.id;
-                dtpick.jumlah = dt.jumlah;
-            })
             $('.detail_blnj_entry').html(dtpick.nmitem);
-            $('#pagu_entry_form').html(dtpick.jumlah);  
-            $('#entry_jumlah_field').val($('#nilaiDetil1').val());
+            dtpick.nilai = $('#nilaiDetil1').val();
+            $('#entry_jumlah_field').autoNumeric('set', dtpick.nilai);
             entry_modal.modal('show');
         });
         $("#loketForm").on('click', '.loketInputRealisasi2', function () {
             dtpick.nmitem = $('#loketDetailPok1').val();
             socket.emit('detailid', dtpick);
-            socket.on('id_response', function(dt,cb) {
-                detail_id_target = dt.id;
-                dtpick.jumlah = dt.jumlah;
-            })
             $('.detail_blnj_entry').html(dtpick.nmitem);
-            $('#pagu_entry_form').html(dtpick.jumlah);
-            $('#entry_jumlah_field').val($('#nilaiDetil2').val());
+            dtpick.nilai = $('#nilaiDetil1').val();
+            $('#entry_jumlah_field').autoNumeric('set', dtpick.nilai);
             entry_modal.modal('show');
         });
         $("#loketForm").on('click', '.loketInputRealisasi3', function () {
             dtpick.nmitem = $('#loketDetailPok1').val();
             socket.emit('detailid', dtpick);
-            socket.on('id_response', function(dt,cb) {
-                detail_id_target = dt.id;
-                dtpick.jumlah = dt.jumlah;
-            })
             $('.detail_blnj_entry').html(dtpick.nmitem);
-            $('#pagu_entry_form').html(dtpick.jumlah);
-            $('#entry_jumlah_field').val($('#nilaiDetil3').val());
+            dtpick.nilai = $('#nilaiDetil1').val();
+            $('#entry_jumlah_field').autoNumeric('set', dtpick.nilai);
             entry_modal.modal('show');
         });
         $("#loketForm").on('click', '.loketInputRealisasi4', function () {
             dtpick.nmitem = $('#loketDetailPok1').val();
             socket.emit('detailid', dtpick);
-            socket.on('id_response', function(dt,cb) {
-                detail_id_target = dt.id;
-                dtpick.jumlah = dt.jumlah;
-            })
             $('.detail_blnj_entry').html(dtpick.nmitem);
-            $('#pagu_entry_form').html(dtpick.jumlah);
-            $('#entry_jumlah_field').val($('#nilaiDetil4').val());
+            dtpick.nilai = $('#nilaiDetil1').val();
+            $('#entry_jumlah_field').autoNumeric('set', dtpick.nilai);
             entry_modal.modal('show');
         });
         $("#loketForm").on('click', '.loketInputRealisasi5', function () {
             dtpick.nmitem = $('#loketDetailPok1').val();
             socket.emit('detailid', dtpick);
-            socket.on('id_response', function(dt,cb) {
-                detail_id_target = dt.id;
-                dtpick.jumlah = dt.jumlah;
-            })
             $('.detail_blnj_entry').html(dtpick.nmitem);
-            $('#pagu_entry_form').html(dtpick.jumlah);
-            $('#entry_jumlah_field').val($('#nilaiDetil5').val());
+            dtpick.nilai = $('#nilaiDetil1').val();
+            $('#entry_jumlah_field').autoNumeric('set', dtpick.nilai);
             entry_modal.modal('show');
         });
-        
+        socket.on('id_response', function(dt,cb) {
+                detail_id_target = dt.id;
+                $('#pagu_entry_form').html(dt.jumlah);
+        })
 
 
         $(".penerima-autocomplete").on("typeahead:selected typeahead:autocompleted", function(e,datum) {
