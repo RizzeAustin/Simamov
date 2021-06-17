@@ -10,7 +10,7 @@ var async = require('async');
 var fs = require('fs');
 var xl = require('excel4node');
 //Xlsx to Pdf
-var msopdf = require('node-msoffice-pdf');
+//var msopdf = require('node-msoffice-pdf');
 
 var Program = require(__dirname + "/../model/Program.model");
 var Kegiatan = require(__dirname + "/../model/Kegiatan.model");
@@ -2376,7 +2376,6 @@ loket.get('/downloadPermintaanDana/:tabel/:format', function(req, res) { //belum
             },
         }
     })
-
     var text_left = wb.createStyle({
         alignment: {
             wrapText: true,
@@ -2398,7 +2397,6 @@ loket.get('/downloadPermintaanDana/:tabel/:format', function(req, res) { //belum
             },
         }
     })
-
     var number = wb.createStyle({
         alignment: {
             wrapText: true,
@@ -2421,7 +2419,6 @@ loket.get('/downloadPermintaanDana/:tabel/:format', function(req, res) { //belum
         },
         numberFormat: '_(* #,##0_);_(* (#,##0);_(* "-"??_);_(@_)',
     })
-
     var row_tolak = wb.createStyle({
         fill: {
             type: 'pattern',
@@ -2622,39 +2619,71 @@ function UnduhPermintaan(format, wb, res) {
     if (format == 'xlsx')
         wb.write('Daftar Permintaan Dana.xlsx', res)
     else {
-        msopdf(null, function(error, office) {
-            if (error) {
-                console.log("Init failed", error);
-                return
-            }
-            let input = __dirname + '/../temp_file/Daftar Permintaan Dana.xlsx'
-            let output = __dirname + '/../temp_file/Daftar Permintaan Dana.pdf'
-
-            wb.write(input, function(err, stats) {
-                if (err) {
-                    console.log(err)
-                    res.status(500).send()
+        let time = new Date().getTime()
+        let input = __dirname + `/../temp_file/Daftar Permintaan Dana - ${time}.xlsx`
+        wb.writeToBuffer().then(function(buffer) {
+            fs.writeFile(input, buffer, function(err) {
+                if(err) {
+                    return console.log(err)
                 }
-                office.excel({ input: input, output: output }, function(err, pdf) {
-                    if (err) {
+                console.log("excel ready to convert")
+                const libre = require('libreoffice-convert');
+                const path = require('path');
+                var fs = require('fs').promises;
+                const { promisify } = require('bluebird');
+                let lib_convert = promisify(libre.convert)
+                async function convert(name) {
+                    try {
+                        let arr = name.split('.')
+                        const enterPath = path.join(__dirname, `/../temp_file/${name}`);
+                        const outputPath = path.join(__dirname, `/../temp_file/${arr[0]}.pdf`);
+                        // Read file
+                        let data = await fs.readFile(enterPath)
+                        let done = await lib_convert(data, '.pdf', undefined)
+                        await fs.writeFile(outputPath, done)
+                        await res.download(outputPath)
+                        await fs.unlink(enterPath, (err)=>{console.log("excel temp removed")})
+                        await fs.unlink(outputPath, (err)=>{console.log("pdf temp removed")})
+                        return { success: true, fileName: arr[0] };
+                    } catch (err) {
                         console.log(err)
+                        return { success: false }
                     }
-                })
-                office.close(null, function(err) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        res.download(output, (err) => {
-                            if (err) {
-                                console.log(err)
-                            }
-                            fs.unlink(input, (err) => {})
-                            fs.unlink(output, (err) => {})
-                        })
-                    }
-                });
+                }
+                convert(`Daftar Permintaan Dana - ${time}.xlsx`)
             })
         })
+
+        // msopdf(null, function(error, office) {
+        //     if (error) { 
+        //         console.log("Init failed", error);
+        //         return
+        //     }
+        //     // wb.write(input, function(err, stats) {
+        //     //     if (err) {
+        //     //         console.log(err)
+        //     //         res.status(500).send()
+        //     //     }
+        //     //     office.excel({ input: input, output: output }, function(err, pdf) {
+        //     //         if (err) {
+        //     //             console.log(err)
+        //     //         }
+        //     //     })
+        //     //     office.close(null, function(err) { 
+        //     //         if (err) { 
+        //     //             console.log(err);
+        //     //         } else { 
+        //     //             res.download(output, (err)=>{
+        //     //                 if (err) {
+        //     //                     console.log(err)
+        //     //                 }
+        //     //                 fs.unlink(input, (err)=>{})
+        //     //                 fs.unlink(output, (err)=>{})
+        //     //             })
+        //     //         }
+        //     //     });
+        //     // })
+        // })
     }
 }
 
