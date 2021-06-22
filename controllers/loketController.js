@@ -10,7 +10,7 @@ var async = require('async');
 var fs = require('fs');
 var xl = require('excel4node');
 //Xlsx to Pdf
-var msopdf = require('node-msoffice-pdf');
+//var msopdf = require('node-msoffice-pdf');
 
 var Program = require(__dirname + "/../model/Program.model");
 var Kegiatan = require(__dirname + "/../model/Kegiatan.model");
@@ -36,27 +36,79 @@ const { json } = require('body-parser');
 const { db, count, translateAliases } = require('../model/Loket.model');
 
 //const { JSONParser } = require('formidable');
+
 //untuk mengirimkan email
-var nodemailer = require('nodemailer');
-var transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.MAIL_SISTEM_NAME,
-        pass: process.env.MAIL_SISTEM_PASS,
-    }
-});
+const nodemailer = require('nodemailer');
+const { google } = require("googleapis");
+const OAuth2 = google.auth.OAuth2;
+const createTransporter = async () => {
+    const oauth2Client = new OAuth2(
+        process.env.CLIENT_ID,
+        process.env.CLIENT_SECRET,
+        "https://developers.google.com/oauthplayground"
+    );
+    oauth2Client.setCredentials({
+        refresh_token: process.env.REFRESH_TOKEN
+    });
+    const accessToken = await new Promise((resolve, reject) => {
+        oauth2Client.getAccessToken((err, token) => {
+            if (err) {
+                reject("Failed to create access token :(");
+            }
+            resolve(token);
+        });
+    });
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        // host: 'smtp.gmail.com',
+        // port: 587,
+        // secure: false,
+        // logger: true,
+        // debug: true,
+        // secureConnection: false,
+        auth: {
+            type: 'OAuth2',
+            user: process.env.MAIL_SISTEM_NAME,
+            //pass: process.env.MAIL_SISTEM_PASS,
+            accessToken,
+            clientId: process.env.CLIENT_ID,
+            clientSecret: process.env.CLIENT_SECRET,
+            refreshToken: process.env.REFRESH_TOKEN
+        },
+        // tls:{
+        //     rejectUnauthorized:false
+        // },
+    });
+    return transporter;
+};
+const sendEmail = async (emailOptions, message) => {
+    let emailTransporter = await createTransporter();
+    await emailTransporter.sendMail(emailOptions, (err, info) => {
+        if (err) throw new Error(err)
+        console.log('(' + message + ') Email sent: ' + info.response)
+    });
+};
+
+
 
 //Socket.io
 loket.io;
 loket.connections;
 
 loket.socket = function(io, connections, client) {
-
+    
     loket.io = io;
     loket.connections = connections;
-
+    
     var thang = client.handshake.session.tahun_anggaran || new Date().getFullYear()
 
+    // sendEmail({
+    //    subject: "Testing",
+    //    from: process.env.MAIL_SISTEM_NAME,
+    //    to: "221709865@stis.ac.id",
+    //    html: '<h1>HAI APA KABAR?</h1>',
+    // }, 'usual tes');
+    
     client.on('detailid', function(dt) {
         console.log(dt);
         DetailBelanja.findOne({ kdprogram: dt.kdprogram, kdgiat: dt.kdgiat, kdoutput: dt.kdoutput, kdsoutput: dt.kdsoutput, kdkmpnen: dt.kdkmpnen, kdskmpnen: dt.kdskmpnen, kdakun: dt.kdakun, nmitem: dt.nmitem }, function(err, detail) {
@@ -290,7 +342,7 @@ loket.socket = function(io, connections, client) {
     client.on('tabelRealisasiUnit', function(unit, responseUsulan) {
         DetailBelanja.aggregate([
             { $match: { active: true, thang: +thang, unit: { $regex: `${unit}`, $options: 'i' } } },
-            { $project: { kdakun: 1, nmitem: 1, pagu: '$jumlah' } },
+            { $project: { kdprogram: 1, kdgiat: 1, kdoutput: 1, kdsoutput: 1, kdkmpnen:1, kdskmpnen: 1, kdakun: 1, nmitem: 1, pagu: '$jumlah' } },
             { $sort: { _id: 1 } }
         ], function(err, listItem) {
             if (err) {
@@ -346,16 +398,12 @@ loket.socket = function(io, connections, client) {
                     console.log(err)
                     throw new Error(err)
                 }
-                var mailOptions = {
+                sendEmail({
                     from: process.env.MAIL_SISTEM_NAME,
                     to: data.userEmail,
                     subject: 'Konfirmasi Usulan',
                     html: tempUsulanUnit(data.nomorUsulan, formatTanggal(data.tanggalmasuk), 'dikonfirmasi'),
-                }
-                transporter.sendMail(mailOptions, (err, info) => {
-                    if (err) throw new Error(err)
-                    console.log('(Konfirm usulan ke unit) Email sent: ' + info.response)
-                })
+                }, 'Konfirm usulan ke unit');
             })
             User.update({ _id: client.handshake.session.user_id }, { $push: { 'act': { label: 'Konfirmasi Usulan ' + id, timestamp: new Date().getTime() } } },
                 function(err, status) {}
@@ -374,16 +422,12 @@ loket.socket = function(io, connections, client) {
                     console.log(err)
                     throw new Error(err)
                 }
-                var mailOptions = {
+                sendEmail({
                     from: process.env.MAIL_SISTEM_NAME,
                     to: data.userEmail,
                     subject: 'Konfirmasi Usulan',
                     html: tempUsulanUnit(data.nomorUsulan, formatTanggal(data.tanggalmasuk), 'ditolak'),
-                }
-                transporter.sendMail(mailOptions, (err, info) => {
-                    if (err) throw new Error(err)
-                    console.log('(Konfirm usulan ke unit) Email sent: ' + info.response)
-                })
+                }, 'Konfirm usulan ke unit');
             })
             User.update({ _id: client.handshake.session.user_id }, { $push: { 'act': { label: 'Konfirmasi Usulan ' + id, timestamp: new Date().getTime() } } },
                 function(err, status) {}
@@ -996,16 +1040,12 @@ loket.post('/usulanKirim', function(req, res) {
                         console.log(err)
                         throw new Error(err)
                     }
-                    var mailOptions = {
+                    sendEmail({
                         from: process.env.MAIL_SISTEM_NAME,
                         to: data.userEmail,
                         subject: 'Konfirmasi Usulan',
                         html: tempUsulanUnit(data.nomorUsulan, formatTanggal(data.tanggalmasuk), 'dikonfirmasi'),
-                    }
-                    transporter.sendMail(mailOptions, (err, info) => {
-                        if (err) throw new Error(err)
-                        console.log('(Konfirm usulan ke unit) Email sent: ' + info.response)
-                    })
+                    }, 'Konfirm usulan ke unit');
                 })
             })
             userAct(req, 'Mengubah dan konfirmasi POK Usulan ' + req.session.tiketId)
@@ -1191,7 +1231,7 @@ loket.post('/unitKirim', function(req, res) {
                     notulensi: bol(fields.checklistNotulensiUnit),
                     cvNarasumber: bol(fields.checklistCvUnit),
                 },
-                fileSpj: noTrans + '-SpjUnit.' + files.fileSpjUnit.name.match(/[^.]\w*$/i)[0],
+                fileSpj: noTrans + ' - ' + files.fileSpjUnit.name,
                 dokumenBank: '',
                 spp: '',
                 catatan: {
@@ -1213,7 +1253,7 @@ loket.post('/unitKirim', function(req, res) {
             });
 
             const oldpath = files.fileSpjUnit.path
-            const newpath = __dirname + '/../uploaded/spj/' + noTrans + '-SpjUnit.' + files.fileSpjUnit.name.match(/[^.]\w*$/i)[0]
+            const newpath = __dirname + '/../uploaded/spj/' + noTrans + ' - ' + files.fileSpjUnit.name
 
             mv(oldpath, newpath, function(err) {
                 if (err) {
@@ -1341,7 +1381,7 @@ loket.post('/ppkTolak', function(req, res) {
         data.status = 'Dikembalikan ke unit'
 
         //kirim email
-        var mailOptions = {
+        sendEmail({
             from: process.env.MAIL_SISTEM_NAME,
             to: data.email,
             subject: 'Pengembalian Permintaan Dana dengan SIMAMOV',
@@ -1349,13 +1389,9 @@ loket.post('/ppkTolak', function(req, res) {
             //'Maaf permintaan dana yang Anda lakukan pada SIMAMOV dengan nomor transaksi ' + data.nomorTransaksi + ' terdapat kesalahan/dokumen tidak lengkap.<br>' +
             //'Permintaan telah dikembalikan ke unit oleh PPK dengan catatan "' + data.catatan.ppk + '"',
             attachments: [{
-                path: __dirname + '/../uploaded/spj/' + data.nomorTransaksi + '-SpjUnit.' + data.fileSpj.match(/[^.]\w*$/i)[0]
+                path: __dirname + '/../uploaded/spj/' + data.fileSpj
             }]
-        }
-        transporter.sendMail(mailOptions, (err, info) => {
-            if (err) throw new Error(err)
-            console.log('(Tolak Unit) Email sent: ' + info.response)
-        })
+        }, 'Tolak unit');
 
         userAct(req, 'Menolak permintaan ' + data.nomorTransaksi)
         saveRedirect(req, res, data)
@@ -1548,7 +1584,7 @@ loket.post('/ppkKirimBinagram', function(req, res) {
                 data.checklist.cvNarasumber = [data.checklist.cvNarasumber[0], data.checklist.cvNarasumber[1], bol(req.body.checklistCvPpspm)]
                 data.catatan.ppk = req.body.loketCatatanPpk
 
-                var mailOptions = {
+                sendEmail({
                     from: process.env.MAIL_SISTEM_NAME,
                     to: emailBinagram,
                     subject: 'Permintaan Revisi POK',
@@ -1570,13 +1606,9 @@ loket.post('/ppkKirimBinagram', function(req, res) {
                     // '.....Nilai pengajuan bruto: ' + data.nilaiPengajuan + '<br>' +
                     // '.....SPJ: Terlampir',
                     attachments: [{
-                        path: __dirname + '/../uploaded/spj/' + data.nomorTransaksi + '-SpjUnit.' + data.fileSpj.match(/[^.]\w*$/i)[0]
+                        path: __dirname + '/../uploaded/spj/' + data.fileSpj
                     }]
-                }
-                transporter.sendMail(mailOptions, (err, info) => {
-                    if (err) throw new Error(err)
-                    console.log('(Binagram) Email sent: ' + info.response)
-                })
+                }, 'Binagram');
 
                 userAct(req, 'Meneruskan permintaan ' + data.nomorTransaksi + ' ke Binagram')
                 saveRedirect(req, res, data)
@@ -1591,7 +1623,7 @@ loket.post('/ppkKirimBinagram', function(req, res) {
                 console.log(err)
                 throw new Error(err)
             }
-            var mailOptions = {
+            sendEmail({
                 from: process.env.MAIL_SISTEM_NAME,
                 to: emailBinagram,
                 subject: 'Permintaan Revisi POK',
@@ -1599,7 +1631,7 @@ loket.post('/ppkKirimBinagram', function(req, res) {
                     data.pok.uraianProgram, data.pok.uraianAktivitas, data.pok.uraianKro, data.pok.uraianRo, data.pok.uraianKomponen, data.pok.uraianSubKomponen, data.pok.uraianAkun,
                     data.pok.detil.u1, data.pok.detil.u2, data.pok.detil.u3, data.pok.detil.u4, data.pok.detil.u5,
                     data.pok.detil.n1, data.pok.detil.n2, data.pok.detil.n3, data.pok.detil.n4, data.pok.detil.n5,
-                    req.body.catatanPPKUsulanUnit, data.unit, data.nilaiBruto, data.catatanUnit),
+                    req.body.catatanPPKUsulanUnit, data.unit, data.nilaiBruto, data.pok.detilBaru, data.catatanUnit),
                 // 'Permintaan perubahan dana pada POK:<br>' +
                 // '.....Program       : ' + data.pok.kdprogram + ' ' + data.pok.uraianProgram + '<br>' +
                 // '.....Aktivitas     : ' + data.pok.kdaktivitas + ' ' + data.pok.uraianAktivitas + '<br>' +
@@ -1612,11 +1644,7 @@ loket.post('/ppkKirimBinagram', function(req, res) {
                 // '.....Unit                  : ' + data.unit + '<br>' +
                 // '.....Nilai pengajuan bruto : ' + data.nilaiBruto + '<br>' +
                 // '.....Catatan Unit          : ' + data.catatanUnit + '<br>'
-            }
-            transporter.sendMail(mailOptions, (err, info) => {
-                if (err) throw new Error(err)
-                console.log('(Binagram) Email sent: ' + info.response)
-            })
+            }, 'Binagram');
             userAct(req, 'Meneruskan usulan ' + data._id + ' ke Binagram')
             res.status(200).send()
         })
@@ -1635,7 +1663,7 @@ loket.post('/ppspmTolak', function(req, res) {
         data.catatan.ppspm = req.body.loketCatatanPpspm
         data.status = 'Dikembalikan ke unit'
 
-        var mailOptions = {
+        sendEmail({
             from: process.env.MAIL_SISTEM_NAME,
             to: data.email,
             subject: 'Pengembalian Permintaan Dana dengan SIMAMOV',
@@ -1643,13 +1671,9 @@ loket.post('/ppspmTolak', function(req, res) {
             //'Maaf permintaan dana yang Anda lakukan pada SIMAMOV dengan nomor transaksi ' + data.nomorTransaksi + ' terdapat kesalahan/dokumen tidak lengkap.<br>' +
             //'Permintaan telah dikembalikan ke unit oleh PPSPM dengan catatan "' + data.catatan.ppspm + '"',
             attachments: [{
-                path: __dirname + '/../uploaded/spj/' + data.nomorTransaksi + '-SpjUnit.' + data.fileSpj.match(/[^.]\w*$/i)[0]
+                path: __dirname + '/../uploaded/spj/' + data.fileSpj
             }]
-        }
-        transporter.sendMail(mailOptions, (err, info) => {
-            if (err) throw new Error(err)
-            console.log('Email sent: ' + info.response)
-        })
+        }, 'Pengembalian permintaan dana');
 
         userAct(req, 'Menolak permintaan ' + data.nomorTransaksi)
         saveRedirect(req, res, data)
@@ -2148,10 +2172,10 @@ loket.post('/bankKirim', function(req, res) {
             if (fields.loketStatusTransfer == 'ditransfer') data.statusTransfer = 'Telah Ditransfer'
             data.tanggal.transfer = new Date(fields.loketTglTransfer)
             data.tanggal.selesai = new Date()
-            data.dokumenBank = data.nomorTransaksi + '-dokumenBank.' + files.dokumenBank.name.match(/[^.]\w*$/i)[0]
+            data.dokumenBank = data.nomorTransaksi + ' - ' + files.dokumenBank.name
 
             var oldpath = files.dokumenBank.path
-            var newpath = __dirname + '/../uploaded/spj/' + data.nomorTransaksi + '-dokumenBank.' + files.dokumenBank.name.match(/[^.]\w*$/i)[0]
+            var newpath = __dirname + '/../uploaded/spj/' + data.nomorTransaksi + ' - ' + files.dokumenBank.name
 
             mv(oldpath, newpath, function(err) {
                 if (err) { throw new Error(err) }
@@ -2161,7 +2185,7 @@ loket.post('/bankKirim', function(req, res) {
 
             //kirim email ke penerima
             if (data.metodeTransfer != 'CMS') {
-                var mailOptions = {
+                sendEmail({
                     from: process.env.MAIL_SISTEM_NAME,
                     to: data.email,
                     subject: 'Penyelesaian Permintaan Dana dengan SIMAMOV',
@@ -2169,17 +2193,13 @@ loket.post('/bankKirim', function(req, res) {
                     //'Permintaan dana yang Anda lakukan pada SIMAMOV dengan nomor transaksi ' + data.nomorTransaksi + ' telah diselesaikan oleh petugas BAU.<br>' +
                     //'Silahkan cek rekening/ambil uang Anda',
                     attachments: [{
-                            path: __dirname + '/../uploaded/spj/' + data.nomorTransaksi + '-dokumenBank.' + files.dokumenBank.name.match(/[^.]\w*$/i)[0]
+                            path: __dirname + '/../uploaded/spj/' + data.nomorTransaksi + ' - ' + files.dokumenBank.name
                         },
                         {
-                            path: __dirname + '/../uploaded/spj/' + data.nomorTransaksi + '-SpjUnit.' + data.fileSpj.match(/[^.]\w*$/i)[0]
+                            path: __dirname + '/../uploaded/spj/' + data.fileSpj
                         }
                     ]
-                }
-                transporter.sendMail(mailOptions, (err, info) => {
-                    if (err) throw new Error(err)
-                    console.log('(Permintaan selesai) Email sent: ' + info.response)
-                })
+                }, 'Penyelesaian permintaan dana');
             }
 
             Usulan.update({ _id: data.idUsulan }, { status: 'Permintaan dana selesai', timestamp: new Date().getTime() }, function(err, data) {})
@@ -2200,30 +2220,43 @@ loket.post('/downloadSpjTiket', function(req, res) {
             console.log(err)
             throw new Error(err)
         }
-        if (data.fileSpj.match(/[^.]\w*$/i)[0] == 'xls') {
-            const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-SpjUnit.xls`
+        if (data.fileSpj){
+            const file = `${__dirname}/../uploaded/spj/${data.fileSpj}`
             fs.access(file, fs.F_OK, (err) => {
                 if (err) {
                     console.log(err)
-                    res.status(404).send()
-                    return
+                    throw new Error(err)
                 }
-                res.download(file); // Set disposition and send it.
-            })
-        } else if (data.fileSpj.match(/[^.]\w*$/i)[0] == 'xlsx') {
-            const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-SpjUnit.xlsx`
-            fs.access(file, fs.F_OK, (err) => {
-                if (err) {
-                    console.log(err)
-                    res.status(404).send()
-                    return
-                }
-                res.download(file); // Set disposition and send it.
+                res.download(file)
             })
         } else {
-            res.status(404).send()
-            return
+            res.sendStatus(404)
         }
+
+        // if (data.fileSpj.match(/[^.]\w*$/i)[0] == 'xls') {
+        //     const file = `${__dirname}/../uploaded/spj/${data.fileSpj}-SpjUnit.xls`
+        //     fs.access(file, fs.F_OK, (err) => {
+        //         if (err) {
+        //             console.log(err)
+        //             res.status(404).send()
+        //             return
+        //         }
+        //         res.download(file); // Set disposition and send it.
+        //     })
+        // } else if (data.fileSpj.match(/[^.]\w*$/i)[0] == 'xlsx') {
+        //     const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-SpjUnit.xlsx`
+        //     fs.access(file, fs.F_OK, (err) => {
+        //         if (err) {
+        //             console.log(err)
+        //             res.status(404).send()
+        //             return
+        //         }
+        //         res.download(file); // Set disposition and send it.
+        //     })
+        // } else {
+        //     res.status(404).send()
+        //     return
+        // }
     })
 })
 
@@ -2233,46 +2266,42 @@ loket.post('/downloadSpjTiketBank', function(req, res) {
             console.log(err)
             throw new Error(err)
         }
-        if (data.dokumenBank.match(/[^.]\w*$/i)[0] == 'xls') {
-            const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-dokumenBank.xls`
+        if (data.dokumenBank){
+            const file = `${__dirname}/../uploaded/spj/${data.dokumenBank}`
             fs.access(file, fs.F_OK, (err) => {
                 if (err) {
                     console.log(err)
-                    res.status(404).send()
-                    return
+                    throw new Error(err)
                 }
-                res.download(file); // Set disposition and send it.
-            })
-        } else if (data.dokumenBank.match(/[^.]\w*$/i)[0] == 'xlsx') {
-            const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-dokumenBank.xlsx`
-            fs.access(file, fs.F_OK, (err) => {
-                if (err) {
-                    console.log(err)
-                    res.status(404).send()
-                    return
-                }
-                res.download(file); // Set disposition and send it.
+                res.download(file)
             })
         } else {
-            res.status(404).send()
-            return
+            res.sendStatus(404)
         }
-        // const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-dokumenBank.xlsx`
-        // fs.access(file, fs.F_OK, (err) => {
-        //     if (err) {
-        //         console.log(err)
-        //         const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-dokumenBank.xls`
-        //         fs.access(file, fs.F_OK, (err) => {
-        //             if (err) {
-        //                 console.log(err)
-        //                 res.render('404', { layout: false });
-        //                 return
-        //             }
-        //             res.download(file); // Set disposition and send it.
-        //         })
-        //     }
-        //     res.download(file); // Set disposition and send it.
-        // })
+        // if (data.dokumenBank.match(/[^.]\w*$/i)[0] == 'xls') {
+        //     const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-dokumenBank.xls`
+        //     fs.access(file, fs.F_OK, (err) => {
+        //         if (err) {
+        //             console.log(err)
+        //             res.status(404).send()
+        //             return
+        //         }
+        //         res.download(file); // Set disposition and send it.
+        //     })
+        // } else if (data.dokumenBank.match(/[^.]\w*$/i)[0] == 'xlsx') {
+        //     const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-dokumenBank.xlsx`
+        //     fs.access(file, fs.F_OK, (err) => {
+        //         if (err) {
+        //             console.log(err)
+        //             res.status(404).send()
+        //             return
+        //         }
+        //         res.download(file); // Set disposition and send it.
+        //     })
+        // } else {
+        //     res.status(404).send()
+        //     return
+        // }
     })
 })
 
@@ -2356,7 +2385,6 @@ loket.get('/downloadPermintaanDana/:tabel/:format', function(req, res) { //belum
             },
         }
     })
-
     var text_left = wb.createStyle({
         alignment: {
             wrapText: true,
@@ -2378,7 +2406,6 @@ loket.get('/downloadPermintaanDana/:tabel/:format', function(req, res) { //belum
             },
         }
     })
-
     var number = wb.createStyle({
         alignment: {
             wrapText: true,
@@ -2401,7 +2428,6 @@ loket.get('/downloadPermintaanDana/:tabel/:format', function(req, res) { //belum
         },
         numberFormat: '_(* #,##0_);_(* (#,##0);_(* "-"??_);_(@_)',
     })
-
     var row_tolak = wb.createStyle({
         fill: {
             type: 'pattern',
@@ -2481,8 +2507,8 @@ loket.get('/downloadPermintaanDana/:tabel/:format', function(req, res) { //belum
                     ws.cell(row_pos + i, 10).formula(ddd).style(text_left)
                 }
             }
-
-            UnduhPermintaan(format, wb, res)
+    
+            UnduhPermintaan(format, wb, res, 'diproses')
         })
     } else if (jenisTabel == 'selesai') {
         Loket.find({ status: 'Selesai' }, { nomorTransaksi: 1, tanggal: { transfer: 1, selesai: 1 }, unit: 1, pok: { kdakun: 1, detil: 1 }, detail: 1, metodeTransfer: 1, nilai: { bruto: 1, pajak: 1 } }).lean().sort('tanggal.selesai').exec((err, data) => {
@@ -2540,8 +2566,8 @@ loket.get('/downloadPermintaanDana/:tabel/:format', function(req, res) { //belum
                 ws.cell(row_pos + i, 9).string(data[i].pok.kdakun).style(text_center)
                 ws.cell(row_pos + i, 10).formula(ddd).style(text_left)
             }
-
-            UnduhPermintaan(format, wb, res)
+    
+            UnduhPermintaan(format, wb, res, 'selesai')
         })
     }
 
@@ -2598,48 +2624,83 @@ function formatUang(x) {
     } else return ''
 }
 
-function UnduhPermintaan(format, wb, res) {
+function UnduhPermintaan(format, wb, res, tabel){
+    let time = new Date().getTime()
     if (format == 'xlsx')
-        wb.write('Daftar Permintaan Dana.xlsx', res)
+        wb.write(`Daftar Permintaan Dana ${tabel} - ${time}.xlsx`, res)
     else {
-        msopdf(null, function(error, office) {
-            if (error) {
-                console.log("Init failed", error);
-                return
-            }
-            let input = __dirname + '/../temp_file/Daftar Permintaan Dana.xlsx'
-            let output = __dirname + '/../temp_file/Daftar Permintaan Dana.pdf'
-
-            wb.write(input, function(err, stats) {
-                if (err) {
-                    console.log(err)
-                    res.status(500).send()
+        let input = __dirname + `/../temp_file/Daftar Permintaan Dana ${tabel} - ${time}.xlsx`
+        wb.writeToBuffer().then(function(buffer) {
+            fs.writeFile(input, buffer, function(err) {
+                if(err) {
+                    return console.log(err)
                 }
-                office.excel({ input: input, output: output }, function(err, pdf) {
-                    if (err) {
+                console.log("excel ready to convert")
+                const libre = require('libreoffice-convert');
+                const path = require('path');
+                var fsp = require('fs').promises;
+                const { promisify } = require('bluebird');
+                let lib_convert = promisify(libre.convert)
+                async function convert(name) {
+                    try {
+                        let arr = name.split('.')
+                        const enterPath = path.join(__dirname, `/../temp_file/${name}`);
+                        const outputPath = path.join(__dirname, `/../temp_file/${arr[0]}.pdf`);
+                        // Read file
+                        let data = await fsp.readFile(enterPath)
+                        let done = await lib_convert(data, '.pdf', undefined)
+                        await fsp.writeFile(outputPath, done)
+                        await res.download(outputPath)
+                        await fsp.unlink(enterPath, (err)=>{console.log("excel temp removed")})
+                        await fsp.unlink(outputPath, (err)=>{console.log("pdf temp removed")})
+                        return { success: true, fileName: arr[0] };
+                    } catch (err) {
                         console.log(err)
+                        return { success: false }
                     }
-                })
-                office.close(null, function(err) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        res.download(output, (err) => {
-                            if (err) {
-                                console.log(err)
-                            }
-                            fs.unlink(input, (err) => {})
-                            fs.unlink(output, (err) => {})
-                        })
-                    }
-                });
+                }
+                convert(`Daftar Permintaan Dana ${tabel} - ${time}.xlsx`)
             })
         })
+
+        // msopdf(null, function(error, office) {
+        //     if (error) { 
+        //         console.log("Init failed", error);
+        //         return
+        //     }
+        //     let time = new Date().getTime()
+        //     let input = __dirname + `/../temp_file/Daftar Permintaan Dana - ${time}.xlsx`
+        //     let output = __dirname + `/../temp_file/Daftar Permintaan Dana - ${time}.xlsx`
+        //     // wb.write(input, function(err, stats) {
+        //     //     if (err) {
+        //     //         console.log(err)
+        //     //         res.status(500).send()
+        //     //     }
+        //     //     office.excel({ input: input, output: output }, function(err, pdf) {
+        //     //         if (err) {
+        //     //             console.log(err)
+        //     //         }
+        //     //     })
+        //     //     office.close(null, function(err) { 
+        //     //         if (err) { 
+        //     //             console.log(err);
+        //     //         } else { 
+        //     //             res.download(output, (err)=>{
+        //     //                 if (err) {
+        //     //                     console.log(err)
+        //     //                 }
+        //     //                 fs.unlink(input, (err)=>{})
+        //     //                 fs.unlink(output, (err)=>{})
+        //     //             })
+        //     //         }
+        //     //     });
+        //     // })
+        // })
     }
 }
 
 //format email
-function tempToBinagram(k1, k2, k3, k4, k5, k6, k7, u1, u2, u3, u4, u5, u6, u7, d1, d2, d3, d4, d5, nd1, nd2, nd3, nd4, nd5, cppk, nu, np, cu) { //usulan
+function tempToBinagram(k1, k2, k3, k4, k5, k6, k7, u1, u2, u3, u4, u5, u6, u7, d1, d2, d3, d4, d5, nd1, nd2, nd3, nd4, nd5, cppk, nu, np, udet, cu) { //usulan
     return `<table width="100%" height="100" bgcolor="#E4F1EB" align="center" cellpadding="0" cellspacing="0">` +
         `<tbody>` +
         `<tr height="40"></tr>` +
@@ -2820,6 +2881,15 @@ function tempToBinagram(k1, k2, k3, k4, k5, k6, k7, u1, u2, u3, u4, u5, u6, u7, 
         `</td>` +
         `<td align="left" style="font-family: 'Lato', sans-serif; font-size:14px; color:#3B3561; line-height:24px; font-weight: 300; vertical-align:top;">` +
         `: Rp ${np}` +
+        `</td>` +
+        `</tr>` +
+        `<tr>` +
+        `<td></td>` +
+        `<td align="left" style="font-family: 'Lato', sans-serif; font-size:14px; color:#3B3561; line-height:24px; font-weight: 300; vertical-align:top;">` +
+        `Usulan detil 1` +
+        `</td>` +
+        `<td align="left" style="font-family: 'Lato', sans-serif; font-size:14px; color:#3B3561; line-height:24px; font-weight: 300; vertical-align:top;">` +
+        `: ${udet || '-'}` +
         `</td>` +
         `</tr>` +
         `<tr>` +
