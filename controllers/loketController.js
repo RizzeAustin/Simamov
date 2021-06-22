@@ -1592,7 +1592,7 @@ loket.post('/ppkKirimBinagram', function(req, res) {
                         result[0], result[1], result[2], result[3], result[4], result[5], result[6],
                         req.body.loketDetailPok1, req.body.loketDetailPok2, req.body.loketDetailPok3, req.body.loketDetailPok4, req.body.loketDetailPok5,
                         req.body.nilaiDetil1, req.body.nilaiDetil2, req.body.nilaiDetil3, req.body.nilaiDetil4, req.body.nilaiDetil5,
-                        req.body.loketCatatanPpk, data.unit.nama, data.nilai.bruto),
+                        req.body.loketCatatanPpk, data.nomorTransaksi, data.unit.nama, data.nilai.bruto),
                     // 'PPK meminta perubahan dana pada POK:<br>' +
                     // '.....Program: ' + req.body.loketProgram + ' ' + result[0] + '<br>' +
                     // '.....Aktivitas: ' + req.body.loketKegiatan + ' ' + result[1] + '<br>' +
@@ -1631,7 +1631,7 @@ loket.post('/ppkKirimBinagram', function(req, res) {
                     data.pok.uraianProgram, data.pok.uraianAktivitas, data.pok.uraianKro, data.pok.uraianRo, data.pok.uraianKomponen, data.pok.uraianSubKomponen, data.pok.uraianAkun,
                     data.pok.detil.u1, data.pok.detil.u2, data.pok.detil.u3, data.pok.detil.u4, data.pok.detil.u5,
                     data.pok.detil.n1, data.pok.detil.n2, data.pok.detil.n3, data.pok.detil.n4, data.pok.detil.n5,
-                    req.body.catatanPPKUsulanUnit, data.unit, data.nilaiBruto, data.pok.detilBaru, data.catatanUnit),
+                    req.body.catatanPPKUsulanUnit, data.nomorUsulan, data.unit, data.nilaiBruto, data.pok.detilBaru, data.catatanUnit),
                 // 'Permintaan perubahan dana pada POK:<br>' +
                 // '.....Program       : ' + data.pok.kdprogram + ' ' + data.pok.uraianProgram + '<br>' +
                 // '.....Aktivitas     : ' + data.pok.kdaktivitas + ' ' + data.pok.uraianAktivitas + '<br>' +
@@ -2700,7 +2700,7 @@ function UnduhPermintaan(format, wb, res, tabel){
 }
 
 //format email
-function tempToBinagram(k1, k2, k3, k4, k5, k6, k7, u1, u2, u3, u4, u5, u6, u7, d1, d2, d3, d4, d5, nd1, nd2, nd3, nd4, nd5, cppk, nu, np, udet, cu) { //usulan
+function tempToBinagram(k1, k2, k3, k4, k5, k6, k7, u1, u2, u3, u4, u5, u6, u7, d1, d2, d3, d4, d5, nd1, nd2, nd3, nd4, nd5, cppk, nousulan, nu, np, udet, cu) { //usulan
     return `<table width="100%" height="100" bgcolor="#E4F1EB" align="center" cellpadding="0" cellspacing="0">` +
         `<tbody>` +
         `<tr height="40"></tr>` +
@@ -2868,10 +2868,19 @@ function tempToBinagram(k1, k2, k3, k4, k5, k6, k7, u1, u2, u3, u4, u5, u6, u7, 
         `<tr>` +
         `<td></td>` +
         `<td align="left" style="font-family: 'Lato', sans-serif; font-size:14px; color:#3B3561; line-height:24px; font-weight: 300; vertical-align:top;">` +
+        `Nomor Usulan` +
+        `</td>` +
+        `<td align="left" style="font-family: 'Lato', sans-serif; font-size:14px; color:#3B3561; line-height:24px; font-weight: 300; vertical-align:top;">` +
+        `: ${nousulan}` +
+        `</td>` +
+        `</tr>` +
+        `<tr>` +
+        `<td></td>` +
+        `<td align="left" style="font-family: 'Lato', sans-serif; font-size:14px; color:#3B3561; line-height:24px; font-weight: 300; vertical-align:top;">` +
         `Unit` +
         `</td>` +
         `<td align="left" style="font-family: 'Lato', sans-serif; font-size:14px; color:#3B3561; line-height:24px; font-weight: 300; vertical-align:top;">` +
-        `: ${nu }` +
+        `: ${nu}` +
         `</td>` +
         `</tr>` +
         `<tr>` +
@@ -2928,7 +2937,7 @@ function tempToBinagram(k1, k2, k3, k4, k5, k6, k7, u1, u2, u3, u4, u5, u6, u7, 
         `</table>`
 }
 
-function tempToBinagram2(k1, k2, k3, k4, k5, k6, k7, u1, u2, u3, u4, u5, u6, u7, d1, d2, d3, d4, d5, nd1, nd2, nd3, nd4, nd5, cppk, nu, np) { //pemrintaan dana
+function tempToBinagram2(k1, k2, k3, k4, k5, k6, k7, u1, u2, u3, u4, u5, u6, u7, d1, d2, d3, d4, d5, nd1, nd2, nd3, nd4, nd5, cppk, notrans, nu, np) { //pemrintaan dana
     return `<table width="100%" height="100" bgcolor="#E4F1EB" align="center" cellpadding="0" cellspacing="0">` +
         `<tbody>` +
         `<tr height="40"></tr>` +
@@ -3096,10 +3105,19 @@ function tempToBinagram2(k1, k2, k3, k4, k5, k6, k7, u1, u2, u3, u4, u5, u6, u7,
         `<tr>` +
         `<td></td>` +
         `<td align="left" style="font-family: 'Lato', sans-serif; font-size:14px; color:#3B3561; line-height:24px; font-weight: 300; vertical-align:top;">` +
+        `Nomor Transaksi` +
+        `</td>` +
+        `<td align="left" style="font-family: 'Lato', sans-serif; font-size:14px; color:#3B3561; line-height:24px; font-weight: 300; vertical-align:top;">` +
+        `: ${notrans}` +
+        `</td>` +
+        `</tr>` +
+        `<tr>` +
+        `<td></td>` +
+        `<td align="left" style="font-family: 'Lato', sans-serif; font-size:14px; color:#3B3561; line-height:24px; font-weight: 300; vertical-align:top;">` +
         `Unit` +
         `</td>` +
         `<td align="left" style="font-family: 'Lato', sans-serif; font-size:14px; color:#3B3561; line-height:24px; font-weight: 300; vertical-align:top;">` +
-        `: ${nu }` +
+        `: ${nu}` +
         `</td>` +
         `</tr>` +
         `<tr>` +
