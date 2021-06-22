@@ -1231,7 +1231,7 @@ loket.post('/unitKirim', function(req, res) {
                     notulensi: bol(fields.checklistNotulensiUnit),
                     cvNarasumber: bol(fields.checklistCvUnit),
                 },
-                fileSpj: noTrans + '-SpjUnit.' + files.fileSpjUnit.name.match(/[^.]\w*$/i)[0],
+                fileSpj: noTrans + ' - ' + files.fileSpjUnit.name,
                 dokumenBank: '',
                 spp: '',
                 catatan: {
@@ -1253,7 +1253,7 @@ loket.post('/unitKirim', function(req, res) {
             });
 
             const oldpath = files.fileSpjUnit.path
-            const newpath = __dirname + '/../uploaded/spj/' + noTrans + '-SpjUnit.' + files.fileSpjUnit.name.match(/[^.]\w*$/i)[0]
+            const newpath = __dirname + '/../uploaded/spj/' + noTrans + ' - ' + files.fileSpjUnit.name
 
             mv(oldpath, newpath, function(err) {
                 if (err) {
@@ -1389,7 +1389,7 @@ loket.post('/ppkTolak', function(req, res) {
             //'Maaf permintaan dana yang Anda lakukan pada SIMAMOV dengan nomor transaksi ' + data.nomorTransaksi + ' terdapat kesalahan/dokumen tidak lengkap.<br>' +
             //'Permintaan telah dikembalikan ke unit oleh PPK dengan catatan "' + data.catatan.ppk + '"',
             attachments: [{
-                path: __dirname + '/../uploaded/spj/' + data.nomorTransaksi + '-SpjUnit.' + data.fileSpj.match(/[^.]\w*$/i)[0]
+                path: __dirname + '/../uploaded/spj/' + data.fileSpj
             }]
         }, 'Tolak unit');
 
@@ -1606,7 +1606,7 @@ loket.post('/ppkKirimBinagram', function(req, res) {
                     // '.....Nilai pengajuan bruto: ' + data.nilaiPengajuan + '<br>' +
                     // '.....SPJ: Terlampir',
                     attachments: [{
-                        path: __dirname + '/../uploaded/spj/' + data.nomorTransaksi + '-SpjUnit.' + data.fileSpj.match(/[^.]\w*$/i)[0]
+                        path: __dirname + '/../uploaded/spj/' + data.fileSpj
                     }]
                 }, 'Binagram');
 
@@ -1631,7 +1631,7 @@ loket.post('/ppkKirimBinagram', function(req, res) {
                     data.pok.uraianProgram, data.pok.uraianAktivitas, data.pok.uraianKro, data.pok.uraianRo, data.pok.uraianKomponen, data.pok.uraianSubKomponen, data.pok.uraianAkun,
                     data.pok.detil.u1, data.pok.detil.u2, data.pok.detil.u3, data.pok.detil.u4, data.pok.detil.u5,
                     data.pok.detil.n1, data.pok.detil.n2, data.pok.detil.n3, data.pok.detil.n4, data.pok.detil.n5,
-                    req.body.catatanPPKUsulanUnit, data.unit, data.nilaiBruto, data.catatanUnit),
+                    req.body.catatanPPKUsulanUnit, data.unit, data.nilaiBruto, data.pok.detilBaru, data.catatanUnit),
                 // 'Permintaan perubahan dana pada POK:<br>' +
                 // '.....Program       : ' + data.pok.kdprogram + ' ' + data.pok.uraianProgram + '<br>' +
                 // '.....Aktivitas     : ' + data.pok.kdaktivitas + ' ' + data.pok.uraianAktivitas + '<br>' +
@@ -1671,7 +1671,7 @@ loket.post('/ppspmTolak', function(req, res) {
             //'Maaf permintaan dana yang Anda lakukan pada SIMAMOV dengan nomor transaksi ' + data.nomorTransaksi + ' terdapat kesalahan/dokumen tidak lengkap.<br>' +
             //'Permintaan telah dikembalikan ke unit oleh PPSPM dengan catatan "' + data.catatan.ppspm + '"',
             attachments: [{
-                path: __dirname + '/../uploaded/spj/' + data.nomorTransaksi + '-SpjUnit.' + data.fileSpj.match(/[^.]\w*$/i)[0]
+                path: __dirname + '/../uploaded/spj/' + data.fileSpj
             }]
         }, 'Pengembalian permintaan dana');
 
@@ -2172,10 +2172,10 @@ loket.post('/bankKirim', function(req, res) {
             if (fields.loketStatusTransfer == 'ditransfer') data.statusTransfer = 'Telah Ditransfer'
             data.tanggal.transfer = new Date(fields.loketTglTransfer)
             data.tanggal.selesai = new Date()
-            data.dokumenBank = data.nomorTransaksi + '-dokumenBank.' + files.dokumenBank.name.match(/[^.]\w*$/i)[0]
+            data.dokumenBank = data.nomorTransaksi + ' - ' + files.dokumenBank.name
 
             var oldpath = files.dokumenBank.path
-            var newpath = __dirname + '/../uploaded/spj/' + data.nomorTransaksi + '-dokumenBank.' + files.dokumenBank.name.match(/[^.]\w*$/i)[0]
+            var newpath = __dirname + '/../uploaded/spj/' + data.nomorTransaksi + ' - ' + files.dokumenBank.name
 
             mv(oldpath, newpath, function(err) {
                 if (err) { throw new Error(err) }
@@ -2193,10 +2193,10 @@ loket.post('/bankKirim', function(req, res) {
                     //'Permintaan dana yang Anda lakukan pada SIMAMOV dengan nomor transaksi ' + data.nomorTransaksi + ' telah diselesaikan oleh petugas BAU.<br>' +
                     //'Silahkan cek rekening/ambil uang Anda',
                     attachments: [{
-                            path: __dirname + '/../uploaded/spj/' + data.nomorTransaksi + '-dokumenBank.' + files.dokumenBank.name.match(/[^.]\w*$/i)[0]
+                            path: __dirname + '/../uploaded/spj/' + data.nomorTransaksi + ' - ' + files.dokumenBank.name
                         },
                         {
-                            path: __dirname + '/../uploaded/spj/' + data.nomorTransaksi + '-SpjUnit.' + data.fileSpj.match(/[^.]\w*$/i)[0]
+                            path: __dirname + '/../uploaded/spj/' + data.fileSpj
                         }
                     ]
                 }, 'Penyelesaian permintaan dana');
@@ -2220,30 +2220,43 @@ loket.post('/downloadSpjTiket', function(req, res) {
             console.log(err)
             throw new Error(err)
         }
-        if (data.fileSpj.match(/[^.]\w*$/i)[0] == 'xls') {
-            const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-SpjUnit.xls`
+        if (data.fileSpj){
+            const file = `${__dirname}/../uploaded/spj/${data.fileSpj}`
             fs.access(file, fs.F_OK, (err) => {
                 if (err) {
                     console.log(err)
-                    res.status(404).send()
-                    return
+                    throw new Error(err)
                 }
-                res.download(file); // Set disposition and send it.
-            })
-        } else if (data.fileSpj.match(/[^.]\w*$/i)[0] == 'xlsx') {
-            const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-SpjUnit.xlsx`
-            fs.access(file, fs.F_OK, (err) => {
-                if (err) {
-                    console.log(err)
-                    res.status(404).send()
-                    return
-                }
-                res.download(file); // Set disposition and send it.
+                res.download(file)
             })
         } else {
-            res.status(404).send()
-            return
+            res.sendStatus(404)
         }
+
+        // if (data.fileSpj.match(/[^.]\w*$/i)[0] == 'xls') {
+        //     const file = `${__dirname}/../uploaded/spj/${data.fileSpj}-SpjUnit.xls`
+        //     fs.access(file, fs.F_OK, (err) => {
+        //         if (err) {
+        //             console.log(err)
+        //             res.status(404).send()
+        //             return
+        //         }
+        //         res.download(file); // Set disposition and send it.
+        //     })
+        // } else if (data.fileSpj.match(/[^.]\w*$/i)[0] == 'xlsx') {
+        //     const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-SpjUnit.xlsx`
+        //     fs.access(file, fs.F_OK, (err) => {
+        //         if (err) {
+        //             console.log(err)
+        //             res.status(404).send()
+        //             return
+        //         }
+        //         res.download(file); // Set disposition and send it.
+        //     })
+        // } else {
+        //     res.status(404).send()
+        //     return
+        // }
     })
 })
 
@@ -2253,46 +2266,42 @@ loket.post('/downloadSpjTiketBank', function(req, res) {
             console.log(err)
             throw new Error(err)
         }
-        if (data.dokumenBank.match(/[^.]\w*$/i)[0] == 'xls') {
-            const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-dokumenBank.xls`
+        if (data.dokumenBank){
+            const file = `${__dirname}/../uploaded/spj/${data.dokumenBank}`
             fs.access(file, fs.F_OK, (err) => {
                 if (err) {
                     console.log(err)
-                    res.status(404).send()
-                    return
+                    throw new Error(err)
                 }
-                res.download(file); // Set disposition and send it.
-            })
-        } else if (data.dokumenBank.match(/[^.]\w*$/i)[0] == 'xlsx') {
-            const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-dokumenBank.xlsx`
-            fs.access(file, fs.F_OK, (err) => {
-                if (err) {
-                    console.log(err)
-                    res.status(404).send()
-                    return
-                }
-                res.download(file); // Set disposition and send it.
+                res.download(file)
             })
         } else {
-            res.status(404).send()
-            return
+            res.sendStatus(404)
         }
-        // const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-dokumenBank.xlsx`
-        // fs.access(file, fs.F_OK, (err) => {
-        //     if (err) {
-        //         console.log(err)
-        //         const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-dokumenBank.xls`
-        //         fs.access(file, fs.F_OK, (err) => {
-        //             if (err) {
-        //                 console.log(err)
-        //                 res.render('404', { layout: false });
-        //                 return
-        //             }
-        //             res.download(file); // Set disposition and send it.
-        //         })
-        //     }
-        //     res.download(file); // Set disposition and send it.
-        // })
+        // if (data.dokumenBank.match(/[^.]\w*$/i)[0] == 'xls') {
+        //     const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-dokumenBank.xls`
+        //     fs.access(file, fs.F_OK, (err) => {
+        //         if (err) {
+        //             console.log(err)
+        //             res.status(404).send()
+        //             return
+        //         }
+        //         res.download(file); // Set disposition and send it.
+        //     })
+        // } else if (data.dokumenBank.match(/[^.]\w*$/i)[0] == 'xlsx') {
+        //     const file = `${__dirname}/../uploaded/spj/${data.nomorTransaksi}-dokumenBank.xlsx`
+        //     fs.access(file, fs.F_OK, (err) => {
+        //         if (err) {
+        //             console.log(err)
+        //             res.status(404).send()
+        //             return
+        //         }
+        //         res.download(file); // Set disposition and send it.
+        //     })
+        // } else {
+        //     res.status(404).send()
+        //     return
+        // }
     })
 })
 
@@ -2498,8 +2507,8 @@ loket.get('/downloadPermintaanDana/:tabel/:format', function(req, res) { //belum
                     ws.cell(row_pos + i, 10).formula(ddd).style(text_left)
                 }
             }
-
-            UnduhPermintaan(format, wb, res)
+    
+            UnduhPermintaan(format, wb, res, 'diproses')
         })
     } else if (jenisTabel == 'selesai') {
         Loket.find({ status: 'Selesai' }, { nomorTransaksi: 1, tanggal: { transfer: 1, selesai: 1 }, unit: 1, pok: { kdakun: 1, detil: 1 }, detail: 1, metodeTransfer: 1, nilai: { bruto: 1, pajak: 1 } }).lean().sort('tanggal.selesai').exec((err, data) => {
@@ -2557,8 +2566,8 @@ loket.get('/downloadPermintaanDana/:tabel/:format', function(req, res) { //belum
                 ws.cell(row_pos + i, 9).string(data[i].pok.kdakun).style(text_center)
                 ws.cell(row_pos + i, 10).formula(ddd).style(text_left)
             }
-
-            UnduhPermintaan(format, wb, res)
+    
+            UnduhPermintaan(format, wb, res, 'selesai')
         })
     }
 
@@ -2615,12 +2624,12 @@ function formatUang(x) {
     } else return ''
 }
 
-function UnduhPermintaan(format, wb, res) {
+function UnduhPermintaan(format, wb, res, tabel){
+    let time = new Date().getTime()
     if (format == 'xlsx')
-        wb.write('Daftar Permintaan Dana.xlsx', res)
+        wb.write(`Daftar Permintaan Dana ${tabel} - ${time}.xlsx`, res)
     else {
-        let time = new Date().getTime()
-        let input = __dirname + `/../temp_file/Daftar Permintaan Dana - ${time}.xlsx`
+        let input = __dirname + `/../temp_file/Daftar Permintaan Dana ${tabel} - ${time}.xlsx`
         wb.writeToBuffer().then(function(buffer) {
             fs.writeFile(input, buffer, function(err) {
                 if(err) {
@@ -2629,7 +2638,7 @@ function UnduhPermintaan(format, wb, res) {
                 console.log("excel ready to convert")
                 const libre = require('libreoffice-convert');
                 const path = require('path');
-                var fs = require('fs').promises;
+                var fsp = require('fs').promises;
                 const { promisify } = require('bluebird');
                 let lib_convert = promisify(libre.convert)
                 async function convert(name) {
@@ -2638,19 +2647,19 @@ function UnduhPermintaan(format, wb, res) {
                         const enterPath = path.join(__dirname, `/../temp_file/${name}`);
                         const outputPath = path.join(__dirname, `/../temp_file/${arr[0]}.pdf`);
                         // Read file
-                        let data = await fs.readFile(enterPath)
+                        let data = await fsp.readFile(enterPath)
                         let done = await lib_convert(data, '.pdf', undefined)
-                        await fs.writeFile(outputPath, done)
+                        await fsp.writeFile(outputPath, done)
                         await res.download(outputPath)
-                        await fs.unlink(enterPath, (err)=>{console.log("excel temp removed")})
-                        await fs.unlink(outputPath, (err)=>{console.log("pdf temp removed")})
+                        await fsp.unlink(enterPath, (err)=>{console.log("excel temp removed")})
+                        await fsp.unlink(outputPath, (err)=>{console.log("pdf temp removed")})
                         return { success: true, fileName: arr[0] };
                     } catch (err) {
                         console.log(err)
                         return { success: false }
                     }
                 }
-                convert(`Daftar Permintaan Dana - ${time}.xlsx`)
+                convert(`Daftar Permintaan Dana ${tabel} - ${time}.xlsx`)
             })
         })
 
@@ -2659,6 +2668,9 @@ function UnduhPermintaan(format, wb, res) {
         //         console.log("Init failed", error);
         //         return
         //     }
+        //     let time = new Date().getTime()
+        //     let input = __dirname + `/../temp_file/Daftar Permintaan Dana - ${time}.xlsx`
+        //     let output = __dirname + `/../temp_file/Daftar Permintaan Dana - ${time}.xlsx`
         //     // wb.write(input, function(err, stats) {
         //     //     if (err) {
         //     //         console.log(err)
@@ -2688,7 +2700,7 @@ function UnduhPermintaan(format, wb, res) {
 }
 
 //format email
-function tempToBinagram(k1, k2, k3, k4, k5, k6, k7, u1, u2, u3, u4, u5, u6, u7, d1, d2, d3, d4, d5, nd1, nd2, nd3, nd4, nd5, cppk, nu, np, cu) { //usulan
+function tempToBinagram(k1, k2, k3, k4, k5, k6, k7, u1, u2, u3, u4, u5, u6, u7, d1, d2, d3, d4, d5, nd1, nd2, nd3, nd4, nd5, cppk, nu, np, udet, cu) { //usulan
     return `<table width="100%" height="100" bgcolor="#E4F1EB" align="center" cellpadding="0" cellspacing="0">` +
         `<tbody>` +
         `<tr height="40"></tr>` +
@@ -2869,6 +2881,15 @@ function tempToBinagram(k1, k2, k3, k4, k5, k6, k7, u1, u2, u3, u4, u5, u6, u7, 
         `</td>` +
         `<td align="left" style="font-family: 'Lato', sans-serif; font-size:14px; color:#3B3561; line-height:24px; font-weight: 300; vertical-align:top;">` +
         `: Rp ${np}` +
+        `</td>` +
+        `</tr>` +
+        `<tr>` +
+        `<td></td>` +
+        `<td align="left" style="font-family: 'Lato', sans-serif; font-size:14px; color:#3B3561; line-height:24px; font-weight: 300; vertical-align:top;">` +
+        `Usulan detil 1` +
+        `</td>` +
+        `<td align="left" style="font-family: 'Lato', sans-serif; font-size:14px; color:#3B3561; line-height:24px; font-weight: 300; vertical-align:top;">` +
+        `: ${udet || '-'}` +
         `</td>` +
         `</tr>` +
         `<tr>` +
