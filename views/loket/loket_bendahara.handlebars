@@ -1804,6 +1804,7 @@
                     $("#entri_submit").prop("disabled",false);
                     if(status == 'sukses'){
                         generalAlert('Berhasil disimpan.');
+                        entry_modal.modal('hide');
                     } else {
                         generalAlert(status);
                     }
@@ -1842,6 +1843,7 @@
                         $("#entri_submit").prop("disabled",false);
                         if(status == 'sukses'){
                             generalAlert('Berhasil disimpan.');
+                            entry_modal.modal('hide');
                         } else {
                             generalAlert(status);
                         }
@@ -1897,6 +1899,7 @@
                             data : []
                         });
                         generalAlert('Berhasil disimpan.');
+                        entry_modal.modal('hide');
                     } else {
                         generalAlert(status);
                     }

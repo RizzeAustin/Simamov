@@ -97,24 +97,26 @@ pok.socket = function(io, connections, client) {
     var thang = client.handshake.session.tahun_anggaran || new Date().getFullYear();
     //user aktiv
     var user_aktiv = client.handshake.session.username || 'dummy user';
-
+    //user unit
     var userunit = client.handshake.session.userUnit;
-
+    //user admin
     var admin = client.handshake.session.jenis;
-
+    //user jabatan
     var jabatan = client.handshake.session.userJabatan;
-
+    //user editor
     var editor = (user_aktiv == '');
-
+    //user role petugas
     var role = client.handshake.session.userRole;
 
     //join sesama tahun anggaran utk broadcast
     client.join(thang);
 
+    //menambahkan pilihan unit ke form unit
     client.on('unit', function(id_ref) {
         var cbunit = '';
         DetailBelanja.findOne({ _id: new ObjectId(id_ref.target) }, function(err, detail) {
             Unit.find({}, function(err, units) {
+                //iterasi unit ke form unit
                 _.each(units, function(unit) {
                     if (detail.unit.includes(unit.namaUnit)) {
                         cbunit = cbunit + '<input type="checkbox" class="unitCheckbox" name="unitcb" checked value="' + unit.namaUnit + '"><label> ' + unit.namaUnit + '</label><br>';
@@ -129,6 +131,7 @@ pok.socket = function(io, connections, client) {
         })
     })
 
+    //menambhakan item ke tabel revisi
     client.on('refisi', function(id_ref) {
         DetailBelanja.findOne({ _id: new ObjectId(id_ref.target) }, function(err, detail) {
             var tanggal = detail.tanggal;
@@ -138,6 +141,7 @@ pok.socket = function(io, connections, client) {
             var satkeg = detail.satkeg;
             var hargasat = detail.hargasat;
             var jumlah = detail.jumlah;
+            //iterasi tiap revisi ke tabel
             for (i = 1; i <= detail.old.length; i++) {
                 var idx = detail.old.length - i;
                 var th1 = th;
