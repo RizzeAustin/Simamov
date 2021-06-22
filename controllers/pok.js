@@ -3503,6 +3503,7 @@ pok.get('/', function(req, res) {
             layout: false,
             unit: req.session.userUnit,
             pok_name: 'POK',
+            'binagram': binagram,
             admin: req.session.jenis,
             username: req.session.username,
             tahun_anggaran: req.session.tahun_anggaran,
